@@ -383,6 +383,7 @@ GameObject:
   - component: {fileID: 1630792211744271768}
   - component: {fileID: 1013030576415030112}
   - component: {fileID: -6178459196611400263}
+  - component: {fileID: 6044943181420835460}
   m_Layer: 9
   m_Name: Enemy_0
   m_TagString: Untagged
@@ -468,7 +469,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: af0ffe61bd0b65845abb437e5786fd64, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  boundsType: 0
+  boundsType: 2
   radius: 2
   keepOnScreen: 0
   screenLocs: 0
@@ -490,6 +491,22 @@ MonoBehaviour:
   fireRate: 0.3
   health: 10
   score: 100
+  powerUpDropChance: 0.25
+--- !u!114 &6044943181420835460
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5699771626257760625}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1011afdb3f109b9428a731b2e1141faf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  showingColor: 0
+  blinkCompleteTime: 0
+  ignoreOnCollisionEnter: 0
 --- !u!1 &6537486858507186802
 GameObject:
   m_ObjectHideFlags: 0
