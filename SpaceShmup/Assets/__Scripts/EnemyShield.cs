@@ -63,6 +63,8 @@ public class EnemyShield : MonoBehaviour
         // If we reach here, this shield must absorb the damage
         blinker.SetColors();
 
+        
+
         health -= dmg;
 
         if (health <= 0)

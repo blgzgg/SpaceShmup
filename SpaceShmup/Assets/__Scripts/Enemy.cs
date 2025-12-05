@@ -42,6 +42,21 @@ public class Enemy : MonoBehaviour
         pos = tempPos;
     }
 
+    public virtual void TakeDamage(float dmg)
+    {
+        if (!bndCheck.isOnScreen) return;
+
+        health -= dmg;
+
+        if (health <= 0 && !calledShipDestroyed)
+        {
+            Main.SHIP_DESTROYED(this);
+            calledShipDestroyed = true;
+            Debug.Log("This is it");
+            Destroy(gameObject);
+        }
+    }
+
     /*
     void OnCollisionEnter(Collision coll)
     {
@@ -62,35 +77,16 @@ public class Enemy : MonoBehaviour
     {
         GameObject otherGO = coll.gameObject;
 
-        // Check for collisions with ProjectileHero
         ProjectileHero p = otherGO.GetComponent<ProjectileHero>();
-        if (p != null) {
-            // Only damage this Enemy if it’s on screen
-            if (bndCheck.isOnScreen) {
-                // Get the damage amount from the Main WEAP_DICT
-                health -= Main.GET_WEAPON_DEFINITION(p.type).damageOnHit;
-
-                if (health <= 0)
-                {
-                    if(!calledShipDestroyed)
-                    {
-                        // Tell Main that this ship was destroyed
-                        calledShipDestroyed = true;
-                        Main.SHIP_DESTROYED(this);
-                    }
-
-                    // Destroy this Enemy
-                    Destroy(this.gameObject);
-                }
-            }
-
-            // Destroy the ProjectileHero regardless
+        if (p != null)
+        {
+            float dmg = Main.GET_WEAPON_DEFINITION(p.type).damageOnHit;
+            TakeDamage(dmg);
             Destroy(otherGO);
-        } 
-
+        }
         else
         {
-            print("Enemy hit by non-ProjectileHero: " + otherGO.name);
+            Debug.Log("Enemy hit by non-ProjectileHero: " + otherGO.name);
         }
     }
 }

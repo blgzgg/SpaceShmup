@@ -10,7 +10,8 @@ public enum eWeaponType
     phaser,
     missile,
     laser,
-    shield
+    shield,
+    swivel
 }
 
 [System.Serializable]
@@ -61,6 +62,9 @@ public class Weapon : MonoBehaviour
 
     private GameObject weaponModel;
     private Transform shotPointTrans;
+
+    private ProjectileLaser laserInstance;
+
 
     void Start()
     {
@@ -144,23 +148,71 @@ public class Weapon : MonoBehaviour
                 p.transform.rotation = Quaternion.AngleAxis(-10, Vector3.back);
                 p.vel = p.transform.rotation * vel;
                 break;
+
+            case eWeaponType.phaser:
+                // Left phaser
+                p = MakeProjectile();
+                p.GetComponent<ProjectilePhaser>().SetSinDir(-1); // Left wave
+                p.vel = vel;
+
+                // Right phaser
+                p = MakeProjectile();
+                p.GetComponent<ProjectilePhaser>().SetSinDir(1);  // Right wave
+                p.vel = vel;
+                break;
+
+            case eWeaponType.laser:
+                FireLaser();
+                break;
+
         }
     }
 
     private ProjectileHero MakeProjectile()
     {
         GameObject go = Instantiate(def.projectilePrefab, PROJECTILE_ANCHOR);
+
         ProjectileHero p = go.GetComponent<ProjectileHero>();
+        ProjectilePhaser pPhaser = go.GetComponent<ProjectilePhaser>();
 
         Vector3 pos = shotPointTrans.position;
         pos.z = 0;
-        p.transform.position = pos;
+        go.transform.position = pos;   // Use go, not p
 
-        p.type = type;
+        if (p != null)
+        {
+            p.type = type;
+        }
 
         nextShotTime = Time.time + def.delayBetweenShots;
 
         return p;
     }
+
+    private void FireLaser()
+    {
+        // Create the beam once and reuse it
+        if (laserInstance == null)
+        {
+            GameObject laserGO = Instantiate(def.projectilePrefab, PROJECTILE_ANCHOR);
+            laserInstance = laserGO.GetComponent<ProjectileLaser>();
+
+            if (laserInstance == null)
+            {
+                Debug.LogError("Laser projectilePrefab is missing ProjectileLaser component!");
+                return;
+            }
+
+            laserInstance.Setup(def.projectileColor, def.damagePerSec);
+        }
+
+        Vector3 origin = shotPointTrans.position;
+        origin.z = 0;
+
+        Vector3 dir = Vector3.up; // laser shoots straight up in world space
+
+        laserInstance.FireFrom(origin, dir);
+    }
+
 }
 

@@ -116,10 +116,13 @@ public class Enemy_4 : Enemy
                 {
                     Main.SHIP_DESTROYED(this);
                     calledShipDestroyed = true;
+
+                    Debug.Log("Dumb Bullshit");
+                    Destroy(gameObject);
                 }
 
                 // Destroy this Enemy_4 ship
-                Destroy(gameObject);
+                
             }
 
         }
