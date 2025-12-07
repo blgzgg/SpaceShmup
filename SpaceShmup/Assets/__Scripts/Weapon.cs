@@ -37,7 +37,7 @@ public class WeaponDefinition
     [Tooltip("Damage caused when a single Projectile hits an Enemy")]
     public float damageOnHit = 0;
 
-    [Tooltip("Damage caused per second by the Laser [Not Implemented]")]
+    [Tooltip("Damage caused per second by the Laser")]
     public float damagePerSec = 0;
 
     [Tooltip("Seconds to delay between shots")]
@@ -46,7 +46,6 @@ public class WeaponDefinition
     [Tooltip("Velocity of individual Projectiles")]
     public float velocity = 50;
 }
-
 
 public class Weapon : MonoBehaviour
 {
@@ -64,7 +63,6 @@ public class Weapon : MonoBehaviour
     private Transform shotPointTrans;
 
     private ProjectileLaser laserInstance;
-
 
     void Start()
     {
@@ -133,38 +131,59 @@ public class Weapon : MonoBehaviour
         {
             case eWeaponType.blaster:
                 p = MakeProjectile();
-                p.vel = vel;
+                if (p != null) p.vel = vel;
                 break;
 
             case eWeaponType.spread:
                 p = MakeProjectile();
-                p.vel = vel;
+                if (p != null) p.vel = vel;
 
                 p = MakeProjectile();
-                p.transform.rotation = Quaternion.AngleAxis(10, Vector3.back);
-                p.vel = p.transform.rotation * vel;
+                if (p != null)
+                {
+                    p.transform.rotation = Quaternion.AngleAxis(10, Vector3.back);
+                    p.vel = p.transform.rotation * vel;
+                }
 
                 p = MakeProjectile();
-                p.transform.rotation = Quaternion.AngleAxis(-10, Vector3.back);
-                p.vel = p.transform.rotation * vel;
+                if (p != null)
+                {
+                    p.transform.rotation = Quaternion.AngleAxis(-10, Vector3.back);
+                    p.vel = p.transform.rotation * vel;
+                }
                 break;
 
             case eWeaponType.phaser:
                 // Left phaser
                 p = MakeProjectile();
-                p.GetComponent<ProjectilePhaser>().SetSinDir(-1); // Left wave
-                p.vel = vel;
+                if (p != null)
+                {
+                    ProjectilePhaser phL = p.GetComponent<ProjectilePhaser>();
+                    if (phL != null) phL.SetSinDir(-1);
+                    p.vel = vel;
+                }
 
                 // Right phaser
                 p = MakeProjectile();
-                p.GetComponent<ProjectilePhaser>().SetSinDir(1);  // Right wave
-                p.vel = vel;
+                if (p != null)
+                {
+                    ProjectilePhaser phR = p.GetComponent<ProjectilePhaser>();
+                    if (phR != null) phR.SetSinDir(1);
+                    p.vel = vel;
+                }
                 break;
 
             case eWeaponType.laser:
                 FireLaser();
                 break;
 
+            case eWeaponType.swivel:
+                FireSwivel();
+                break;
+
+            case eWeaponType.missile:
+                FireMissile();
+                break;
         }
     }
 
@@ -173,11 +192,10 @@ public class Weapon : MonoBehaviour
         GameObject go = Instantiate(def.projectilePrefab, PROJECTILE_ANCHOR);
 
         ProjectileHero p = go.GetComponent<ProjectileHero>();
-        ProjectilePhaser pPhaser = go.GetComponent<ProjectilePhaser>();
 
         Vector3 pos = shotPointTrans.position;
         pos.z = 0;
-        go.transform.position = pos;   // Use go, not p
+        go.transform.position = pos;
 
         if (p != null)
         {
@@ -214,5 +232,109 @@ public class Weapon : MonoBehaviour
         laserInstance.FireFrom(origin, dir);
     }
 
-}
+    // == Swivel weapon (existing behavior, now using helper) ==================
 
+    private void FireSwivel()
+    {
+        Vector3 origin = shotPointTrans.position;
+        origin.z = 0f;
+
+        Enemy closest = FindClosestEnemy(origin);
+
+        // Decide initial direction
+        Vector3 dir;
+        if (closest != null)
+        {
+            dir = closest.transform.position - origin;
+            dir.z = 0f;
+            dir.Normalize();
+        }
+        else
+        {
+            // No enemies: just fire straight up
+            dir = Vector3.up;
+        }
+
+        // Spawn projectile
+        ProjectileHero p = MakeProjectile();
+        if (p == null) return;
+
+        float speed = def.velocity;
+
+        // Initial straight velocity
+        p.vel = dir * speed;
+
+        // Give homing behavior (swivel homing – drops target off-screen in its own script)
+        ProjectileHoming homing = p.GetComponent<ProjectileHoming>();
+        if (homing != null)
+        {
+            homing.SetTarget(closest != null ? closest.transform : null, dir, speed);
+        }
+    }
+
+    // == Missile weapon (new) =================================================
+
+    private void FireMissile()
+    {
+        Vector3 origin = shotPointTrans.position;
+        origin.z = 0f;
+
+        Enemy closest = FindClosestEnemy(origin);
+
+        // Decide initial direction
+        Vector3 dir;
+        if (closest != null)
+        {
+            dir = closest.transform.position - origin;
+            dir.z = 0f;
+            dir.Normalize();
+        }
+        else
+        {
+            // No enemies: just fire straight up
+            dir = Vector3.up;
+        }
+
+        // Spawn projectile
+        ProjectileHero p = MakeProjectile();
+        if (p == null) return;
+
+        float speed = def.velocity;
+
+        // Initial straight velocity
+        p.vel = dir * speed;
+
+        // Give missile homing behavior (no off-screen drop)
+        ProjectileMissile missile = p.GetComponent<ProjectileMissile>();
+        if (missile != null)
+        {
+            missile.SetTarget(closest != null ? closest.transform : null, dir, speed);
+        }
+    }
+
+    // == Shared helper ========================================================
+
+    private Enemy FindClosestEnemy(Vector3 origin)
+    {
+        Enemy[] enemies = GameObject.FindObjectsOfType<Enemy>();
+        Enemy closest = null;
+        float closestDistSq = Mathf.Infinity;
+
+        foreach (Enemy e in enemies)
+        {
+            if (e == null || !e.gameObject.activeInHierarchy) continue;
+
+            Vector3 d = e.transform.position - origin;
+            d.z = 0f;
+            float distSq = d.sqrMagnitude;
+
+            if (distSq < closestDistSq)
+            {
+                closest = e;
+                closestDistSq = distSq;
+            }
+        }
+
+        return closest;
+    }
+}

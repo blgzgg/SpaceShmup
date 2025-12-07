@@ -379,10 +379,12 @@
 "Assets/__Scripts/Parallax.cs"
 "Assets/__Scripts/PowerUp.cs"
 "Assets/__Scripts/ProjectileHero.cs"
+"Assets/__Scripts/ProjectileHoming.cs"
 "Assets/__Scripts/ProjectileLaser.cs"
+"Assets/__Scripts/ProjectileMissile.cs"
 "Assets/__Scripts/ProjectilePhaser.cs"
-"Assets/__Scripts/ProjectileSwivel.cs"
 "Assets/__Scripts/Shield.cs"
+"Assets/__Scripts/SwivelGunAimer.cs"
 "Assets/__Scripts/Utils.cs"
 "Assets/__Scripts/Weapon.cs"
 -langversion:9.0
